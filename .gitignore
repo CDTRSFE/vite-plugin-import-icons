@@ -1,0 +1,10 @@
+*.local
+dist
+*.log
+.DS_Store
+node_modules
+*.zip
+.idea/
+auto-imports.d.ts
+components.d.ts
+.pnpm-debug.log
