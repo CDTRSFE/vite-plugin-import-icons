@@ -81,7 +81,7 @@ export default {
 
 ```vue
 <template>
-    <component v-for="name in icons" :is="name" :key="name"></component>
+    <component v-for="(icon, name) in icons" :is="icon" :key="name"></component>
 </template>
 <script>
 const icons = import.meta.icons('icons', 'xxx-*')
