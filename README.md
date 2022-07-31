@@ -1,1 +1,116 @@
 # vite-plugin-import-icons
+
+用于引入 SVG 图标的 Vite 插件，支持按需引入和批量引入。
+
+## 安装
+
+```bash
+pnpm add vite-plugin-import-icons -D
+```
+
+## 使用
+
+以 `~icons/{collection}/{icon}` 的格式引入需要的图标，`collection` 表示图标集，`icon` 表示图标名。
+
+```vue
+<template>
+    <icons-home></icons-home>
+</template>
+
+<script setup lang="ts">
+import IconsHome from '~icons/icons/home';
+</script>
+```
+
+```ts
+// vite.config.ts
+
+import ImportIcons from 'vite-plugin-import-icons';
+
+export default {
+    plugins: [
+        ImportIcons({
+            collection: {
+                icons: './src/assets/icons'
+            }
+        })
+    ]
+}
+```
+
+### 自动引入
+
+配合 `unplugin-vue-components/vite` 插件可以实现自动引入。
+
+```vue
+<template>
+    <icons-home></icons-home>
+</template>
+```
+
+```ts
+// vite.config.ts
+
+import ImportIcons, { ImportIconsResolver } from 'vite-plugin-import-icons';
+import Components from 'unplugin-vue-components/vite';
+
+export default {
+    plugins: [
+        Components({
+            deep: false,
+            extensions: ['vue', 'js'],
+            dts: 'src/types/components.d.ts',
+            resolvers: [
+                ImportIconsResolver({
+                    collections: ['icons', 'my'],
+                }),
+            ],
+        }),
+        ImportIcons({
+            collection: {
+                icons: './src/assets/icons'
+            }
+        })
+    ]
+}
+```
+
+### 批量引入
+
+可以通过 `import.meta.icons` 函数一次性引入多个图标，函数的第一个参数为图标集，第二个参数为 [glob](https://github.com/mrmlnc/fast-glob#pattern-syntax) 字符串。
+
+```vue
+<template>
+    <component v-for="name in icons" :is="name" :key="name"></component>
+</template>
+<script>
+const icons = import.meta.icons('icons', 'xxx-*')
+</script>
+```
+
+```ts
+// vite.config.ts
+
+import ImportIcons, { ImportIconsResolver } from 'vite-plugin-import-icons';
+import Components from 'unplugin-vue-components/vite';
+
+export default {
+    plugins: [
+        Components({
+            deep: false,
+            extensions: ['vue', 'js'],
+            dts: 'src/types/components.d.ts',
+            resolvers: [
+                ImportIconsResolver({
+                    collections: ['icons', 'my'],
+                }),
+            ],
+        }),
+        ImportIcons({
+            collection: {
+                icons: './src/assets/icons'
+            }
+        })
+    ]
+}
+```
