@@ -116,7 +116,7 @@ export default {
 
 ### 批量引入
 
-可以通过 `import.meta.icons` 函数一次性引入多个图标，函数的第一个参数为图标集，第二个参数为 [glob](https://github.com/mrmlnc/fast-glob#pattern-syntax) 字符串。
+可以通过 `import.meta.icons` 函数一次性引入多个图标，函数的第一个参数为图标集，第二个参数为 [glob](https://github.com/mrmlnc/fast-glob#pattern-syntax) 字符串，函数返回值是一个 key 为图标名，value 为对应图标组件的对象。
 
 ```vue
 <template>
@@ -129,22 +129,11 @@ const icons = import.meta.icons('icons', 'xxx-*')
 
 ```ts
 // vite.config.ts
-
 import ImportIcons, { ImportIconsResolver } from 'vite-plugin-import-icons';
 import Components from 'unplugin-vue-components/vite';
 
 export default {
     plugins: [
-        Components({
-            deep: false,
-            extensions: ['vue', 'js'],
-            dts: 'src/types/components.d.ts',
-            resolvers: [
-                ImportIconsResolver({
-                    collections: ['icons', 'my'],
-                }),
-            ],
-        }),
         ImportIcons({
             collection: {
                 icons: './src/assets/icons'
