@@ -32,11 +32,22 @@ async function loadFile(path: string) {
         return null;
     }
     if (stat.isFile()) {
-        let svg = await fs.readFile(path, 'utf-8');
-        const cleanupIdx = svg.indexOf('<svg');
-        if (cleanupIdx > 0) svg = svg.slice(cleanupIdx);
+        const svg = await fs.readFile(path, 'utf-8');
         return svg;
     }
+}
+
+function transformSvg(svg: string, collection: string, icon: string, opt: OptionType) {
+    let result = svg;
+    const cleanupIdx = result.indexOf('<svg');
+    if (cleanupIdx > 0) result = svg.slice(cleanupIdx);
+    const transform = opt.transform;
+    result = typeof transform === 'function' ? transform(result, collection, icon) : result;
+
+    if (!result.startsWith('<svg')) {
+        console.warn(`Icon "${icon}" in "${collection}" is not a valid SVG`);
+    }
+    return result;
 }
 
 function handleSVGId(svg: string) {
@@ -71,10 +82,12 @@ export async function genComponentCode(path: string, opt: OptionType) {
     const dir = (opt.collections[collection] || '').replace(/\/$/, '');
     if (!dir) return null;
     const url = `${dir}/${icon}.svg`;
-    const svg = await loadFile(url);
+    let svg = await loadFile(url);
     if (!svg) throw new Error(`Icon ${url} not found`);
 
+    svg = transformSvg(svg, collection, icon, opt);
     const { injectScripts, svg: handled } = handleSVGId(svg);
+
     let { code } = compileTemplate({
         source: handled,
         id: `${collection}:${icon}`,

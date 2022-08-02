@@ -8,6 +8,46 @@
 pnpm add vite-plugin-import-icons -D
 ```
 
+## 配置
+
+```typescript
+// vite.config.ts
+import ImportIcons from 'vite-plugin-import-icons'
+
+export default defineConfig({
+    plugins: [
+        ImportIcons({ /* options */ }),
+    ],
+});
+```
+
+### collections
+
+用于配置图标集，一个图标集对应一个存放图标的文件夹。
+
+```js
+ImportIcons({
+    collections: {
+        icons: './src/assets/icons',
+    },
+});
+```
+
+### transform
+
+加载图标时自定义转换 SVG 文件，例如给图标添加 `fill` 属性。
+
+```js
+ImportIcons({
+    transform(svg, collection, icon) {
+        // apply fill to this icon on this collection
+        if (collection === 'icons' && icon === 'account')
+            return svg.replace(/^<svg /, '<svg fill="currentColor" ');
+        return svg;
+    },
+});
+```
+
 ## 使用
 
 以 `~icons/{collection}/{icon}` 的格式引入需要的图标，`collection` 表示图标集，`icon` 表示图标名。
@@ -15,27 +55,28 @@ pnpm add vite-plugin-import-icons -D
 ```vue
 <template>
     <icons-home></icons-home>
+    <icons-setting></icons-setting>
 </template>
 
 <script setup lang="ts">
 import IconsHome from '~icons/icons/home';
+import IconsSetting from '~icons/icons/setting';
 </script>
 ```
 
 ```ts
 // vite.config.ts
-
 import ImportIcons from 'vite-plugin-import-icons';
 
 export default {
     plugins: [
         ImportIcons({
             collection: {
-                icons: './src/assets/icons'
+                icons: './src/assets/icons',
             }
         })
-    ]
-}
+    ],
+};
 ```
 
 ### 自动引入
@@ -45,30 +86,28 @@ export default {
 ```vue
 <template>
     <icons-home></icons-home>
+    <other-icons-bar></other-icons-bar>
 </template>
 ```
 
 ```ts
 // vite.config.ts
-
 import ImportIcons, { ImportIconsResolver } from 'vite-plugin-import-icons';
 import Components from 'unplugin-vue-components/vite';
 
 export default {
     plugins: [
         Components({
-            deep: false,
-            extensions: ['vue', 'js'],
-            dts: 'src/types/components.d.ts',
             resolvers: [
                 ImportIconsResolver({
-                    collections: ['icons', 'my'],
+                    collections: ['icons', 'other-icons'],
                 }),
             ],
         }),
         ImportIcons({
             collection: {
-                icons: './src/assets/icons'
+                icons: './src/assets/icons',
+                'other-icons': './src/assets/other-icons',
             }
         })
     ]
