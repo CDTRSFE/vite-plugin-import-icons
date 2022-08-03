@@ -8,3 +8,4 @@ node_modules
 auto-imports.d.ts
 components.d.ts
 .pnpm-debug.log
+z.html

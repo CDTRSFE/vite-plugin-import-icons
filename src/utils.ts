@@ -2,7 +2,9 @@ import type { Stats } from 'fs';
 import { promises as fs } from 'fs';
 import { compileTemplate } from '@vue/compiler-sfc';
 import fg from 'fast-glob';
+import MagicString from 'magic-string';
 import type { OptionType } from './type';
+import { importGlob } from './importGlob';
 
 const URL_PREFIXES = ['~icons/', 'virtual:icons/'];
 const iconPathRE = new RegExp(`${URL_PREFIXES.map(v => `^${v}`).join('|')}`);
@@ -109,31 +111,45 @@ export function camelToKebab(key: string): string {
     return result.split(/\s+/g).join('-').toLowerCase();
 }
 
-const paramsReg = /'([^']+)',\s?'([^']+)'/;
-const importReg = /\bimport\.meta\.icons\(([^)]*)\)/g;
 export function transformImport(code: string, opt: OptionType, id: string) {
-    const group = code.match(importReg) || [];
-    let result = code;
-    group.forEach(item => {
-        const params = item.match(paramsReg) || [];
-        const [, collection, exp] = params;
+    if (id.includes('/node_modules/')) return;
+    if (!/\.(ts|js|vue)\b/.test(id)) return;
+
+    const s = new MagicString(code);
+    const matches = importGlob(code);
+    matches.forEach(v => {
+        if (typeof v === 'string') return;
+        const { start, end, globs: [collection, exp] } = v;
         const dir = (opt.collections[collection] || '').replace(/\/$/, '');
         if (!dir) {
-            throw new Error(`${item}: ${collection} not found`);
+            throw new Error(`${collection} not found`);
         }
-        const entries = fg.sync([`${dir}/${exp}`], { dot: true });
+
+        let globExp = exp;
+        if (!/\.([^.]+)$/.test(globExp)) {
+            globExp += '.svg';
+        }
+
+        const entries = fg.sync([globExp], { dot: false, cwd: dir, objectMode: true, globstar: false });
         const paths = entries
-            .filter(p => p.endsWith('.svg'))
-            .map(p => {
-                const [, icon] = p.match(/([^/]+).svg$/) || [];
-                return `${icon}: defineAsyncComponent(() => import('~icons/${collection}/${icon}'))` || '';
+            .filter(({ name }) => name.endsWith('.svg'))
+            .map(({ name }) => {
+                const icon = name.replace('.svg', '');
+                return `'${icon}': defineAsyncComponent(() => import('~icons/${collection}/${icon}'))`;
             });
-        result = result.replace(item, `{${paths.join(',')}}`);
+        s.overwrite(start, end, `{${paths.join(', ')}}\n`);
     });
-    if (group.length > 0) {
-        // todo
-        console.log(id);
-        result = result.replace(/<script[^>]+>/, str => `${str}import { defineAsyncComponent } from 'vue';\n`);
+
+    let result = code;
+    if (matches.length > 0) {
+        const importExp = 'import { defineAsyncComponent } from \'vue\';\n';
+        if (/\.(ts|js)\b/.test(id)) {
+            s.prepend(importExp);
+        }
+        result = s.toString();
+        if (/\.(vue)\b/.test(id)) {
+            result = result.replace(/<script[^>]+>/, str => `${str}\n${importExp}`);
+        }
     }
     return result;
 }
