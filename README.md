@@ -26,9 +26,11 @@ export default defineConfig({
 用于配置图标集，一个图标集对应一个存放图标的文件夹。
 
 ```js
+import path from 'path';
+
 ImportIcons({
     collections: {
-        icons: './src/assets/icons',
+        icons: path.resolve(__dirname, './src/assets/icons'),
     },
 });
 ```
@@ -41,8 +43,9 @@ ImportIcons({
 ImportIcons({
     transform(svg, collection, icon) {
         // apply fill to this icon on this collection
-        if (collection === 'icons' && icon === 'account')
+        if (collection === 'icons' && icon === 'account') {
             return svg.replace(/^<svg /, '<svg fill="currentColor" ');
+        }
         return svg;
     },
 });
@@ -66,13 +69,14 @@ import IconsSetting from '~icons/icons/setting';
 
 ```ts
 // vite.config.ts
+import path from 'path';
 import ImportIcons from 'vite-plugin-import-icons';
 
 export default {
     plugins: [
         ImportIcons({
             collection: {
-                icons: './src/assets/icons',
+                icons: path.resolve(__dirname, './src/assets/icons'),
             }
         })
     ],
@@ -92,6 +96,7 @@ export default {
 
 ```ts
 // vite.config.ts
+import path from 'path';
 import ImportIcons, { ImportIconsResolver } from 'vite-plugin-import-icons';
 import Components from 'unplugin-vue-components/vite';
 
@@ -106,8 +111,8 @@ export default {
         }),
         ImportIcons({
             collection: {
-                icons: './src/assets/icons',
-                'other-icons': './src/assets/other-icons',
+                icons: path.resolve(__dirname, './src/assets/icons'),
+                'other-icons': path.resolve(__dirname, './src/assets/other-icons'),
             }
         })
     ]
@@ -116,19 +121,20 @@ export default {
 
 ### 批量引入
 
-可以通过 `import.meta.icons` 函数一次性引入多个图标，函数的第一个参数为图标集，第二个参数为 [glob](https://github.com/mrmlnc/fast-glob#pattern-syntax) 字符串，函数返回值是一个 key 为图标名，value 为对应图标组件的对象。
+可以通过 `import.meta.icons` 函数一次性引入多个图标，函数的第一个参数为图标集，第二个参数为 [glob](https://github.com/mrmlnc/fast-glob#pattern-syntax) 字符串，函数返回值是一个以 key 为图标名，value 为对应图标组件的对象。
 
 ```vue
 <template>
     <component v-for="(icon, name) in icons" :is="icon" :key="name"></component>
 </template>
 <script>
-const icons = import.meta.icons('icons', 'xxx-*')
+const icons = import.meta.icons('icons', 'menu-*')
 </script>
 ```
 
 ```ts
 // vite.config.ts
+import path from 'path';
 import ImportIcons, { ImportIconsResolver } from 'vite-plugin-import-icons';
 import Components from 'unplugin-vue-components/vite';
 
@@ -136,9 +142,9 @@ export default {
     plugins: [
         ImportIcons({
             collection: {
-                icons: './src/assets/icons'
+                icons: path.resolve(__dirname, './src/assets/icons'),
             }
         })
-    ]
-}
+    ],
+};
 ```
