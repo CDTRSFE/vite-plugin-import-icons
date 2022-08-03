@@ -18,7 +18,7 @@
         "vite-plugin",
         "icons"
     ],
-    "author": "",
+    "author": "zhaoqing",
     "license": "MIT",
     "devDependencies": {
         "@commitlint/cli": "^17.0.3",
