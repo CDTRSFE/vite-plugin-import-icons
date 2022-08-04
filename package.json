@@ -1,6 +1,6 @@
 {
     "name": "vite-plugin-import-icons",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -15,8 +15,7 @@
         "build": "rimraf dist && rollup -c",
         "lint:eslint": "eslint \"src/**/*.{ts,js}\" --fix",
         "preinstall": "npx only-allow pnpm",
-        "prepare": "husky install",
-        "publish": "npm run build && npm publish"
+        "prepare": "husky install"
     },
     "keywords": [
         "vite",
