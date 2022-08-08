@@ -1,13 +1,16 @@
 import type { Plugin } from 'vite';
 import { isIconPath, genComponentCode, camelToKebab, transformImport } from './utils';
-import type { OptionType, ResolverOptions } from './type';
+import type { OptionType } from './type';
 
 const defaultOpt = {
     collections: {},
 };
 
+let pluginOpt: OptionType = { collections: {} };
+
 export default function importIcons(options: OptionType): Plugin {
     const opt = { ...defaultOpt, ...options };
+    pluginOpt = opt;
     return {
         name: 'import-icons',
         enforce: 'pre',
@@ -38,9 +41,9 @@ export default function importIcons(options: OptionType): Plugin {
     };
 }
 
-export function ImportIconsResolver(options: ResolverOptions) {
-    const collectionNames = options.collections || [];
+export function ImportIconsResolver() {
     return function(name: string) {
+        const collectionNames = Object.keys(pluginOpt.collections) || [];
         const kebab = camelToKebab(name);
         const collection = collectionNames.find(i => kebab.startsWith(i));
         if (!collection) return;

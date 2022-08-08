@@ -104,9 +104,7 @@ export default {
     plugins: [
         Components({
             resolvers: [
-                ImportIconsResolver({
-                    collections: ['icons', 'other-icons'],
-                }),
+                ImportIconsResolver(),
             ],
         }),
         ImportIcons({
