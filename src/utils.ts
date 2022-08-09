@@ -100,7 +100,7 @@ export async function genComponentCode(path: string, opt: OptionType) {
     code += `\n\nexport default { name: '${collection}-${icon}', render${injectScripts ? `, data() {${injectScripts};return { idMap }}` : ''} }`;
     code += '\n/* vite-plugin-components disabled */';
 
-    return code;
+    return { code, url };
 }
 
 export function camelToKebab(key: string): string {

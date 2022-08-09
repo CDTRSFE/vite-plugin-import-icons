@@ -1,7 +1,7 @@
 import { parseExpressionAt } from 'acorn';
 import type { CallExpression, Literal, SequenceExpression } from 'estree';
 
-const importReg = /\bimport\.meta\.(importGlob|icons)(?:<\w+>)?\s*\(/g;
+export const importReg = /\bimport\.meta\.(importGlob|icons)(?:<\w+>)?\s*\(/g;
 
 export function importGlob(code: string) {
     const matches = Array.from(code.matchAll(importReg));
