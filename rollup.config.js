@@ -1,11 +1,12 @@
-import ts from 'rollup-plugin-ts';
+import { readFileSync } from 'fs';
+import ts from 'rollup-plugin-typescript2';
 import dts from 'rollup-plugin-dts';
-import pkg from './package.json' assert { type: 'json' };
+
+const pkg = JSON.parse(readFileSync('package.json', { encoding: 'utf8' }));
 
 export default [
     {
         input: './src/index.ts',
-        external: ['ms'],
         output: [
             { file: pkg.main, format: 'cjs' },
             { file: pkg.module, format: 'es' },
@@ -14,7 +15,6 @@ export default [
     },
     {
         input: './src/index.ts',
-        external: ['ms'],
         output: [
             { file: pkg.types, format: 'es' },
         ],
