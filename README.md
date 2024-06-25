@@ -1,6 +1,6 @@
 # vite-plugin-import-icons
 
-用于引入 SVG 图标的 Vite 插件，支持按需引入和批量引入。
+用于引入 SVG 图标的 Vite 插件，支持自动引入和热更新。
 
 ## 安装
 

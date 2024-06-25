@@ -13,16 +13,20 @@ export function isIconPath(path: string) {
     return iconPathRE.test(path);
 }
 
-function resolvePath(path: string) {
+export function resolvePath(path: string, opt: OptionType) {
     if (!isIconPath(path)) {
         return null;
     }
     path = path.replace(iconPathRE, '');
     path = path.replace(/\.\w+$/, '');
     const [collection, icon] = path.split('/');
+
+    const dir = (opt.collections[collection] || '').replace(/\/$/, '');
+    const sourcePath = `${dir}/${icon}.svg`;
     return {
         collection,
         icon,
+        sourcePath,
     };
 }
 
@@ -77,15 +81,12 @@ function handleSVGId(svg: string) {
 }
 
 export async function genComponentCode(path: string, opt: OptionType) {
-    const resolved = resolvePath(path);
+    const resolved = resolvePath(path, opt);
     if (!resolved) return null;
-    const { collection, icon } = resolved;
+    const { collection, icon, sourcePath } = resolved;
     if (!collection || !icon) return null;
-    const dir = (opt.collections[collection] || '').replace(/\/$/, '');
-    if (!dir) return null;
-    const url = `${dir}/${icon}.svg`;
-    let svg = await loadFile(url);
-    if (!svg) throw new Error(`Icon ${url} not found`);
+    let svg = await loadFile(sourcePath);
+    if (!svg) throw new Error(`Icon ${sourcePath} not found`);
 
     svg = transformSvg(svg, collection, icon, opt);
     const { injectScripts, svg: handled } = handleSVGId(svg);
