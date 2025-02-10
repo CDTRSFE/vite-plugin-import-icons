@@ -97,10 +97,27 @@ export async function genComponentCode(path: string, opt: OptionType) {
         filename: `${collection}-${icon}.vue`,
     });
 
-    code = code.replace(/^export /gm, '');
-    code += `\n\nexport default { name: '${collection}-${icon}', render${injectScripts ? `, data() {${injectScripts};return { idMap }}` : ''} }`;
-    code += '\n/* vite-plugin-components disabled */';
+    const hmrId = `${collection}:${icon}`;
 
+    code = code.replace(/^export /gm, '');
+    code = `\nimport { defineComponent } from 'vue';\n${code}`;
+    code += `\n\n
+        const iconCom = defineComponent({
+            name: '${collection}-${icon}',
+            render${injectScripts ? `,data() {${injectScripts};return { idMap }}` : ''},
+        });
+        iconCom.__hmrId = '${hmrId}';
+        export default iconCom;
+        
+        __VUE_HMR_RUNTIME__.createRecord('${hmrId}', iconCom);
+        if (import.meta.hot) {
+            import.meta.hot.accept((mod) => {
+                if (!mod) return;
+                const {default: updated} = mod;
+                __VUE_HMR_RUNTIME__.reload(updated.__hmrId, updated);
+            });
+        }`;
+    code += '\n/* vite-plugin-components disabled */';
     return code;
 }
 

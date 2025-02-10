@@ -1,4 +1,4 @@
-import type { Plugin } from 'vite';
+import type { Plugin, ModuleNode } from 'vite';
 import { isIconPath, genComponentCode, camelToKebab, transformImport, resolvePath } from './utils';
 import type { OptionType } from './type';
 
@@ -38,37 +38,33 @@ export default function importIcons(options: OptionType): Plugin {
                 };
             }
         },
-        handleHotUpdate(item) {
-            // file 为源文件路径
-            const { file, server } = item;
-            if (!file.endsWith('.svg')) return;
-            const match = Object.values(opt.collections).some(p => {
-                return file.startsWith(p);
+        handleHotUpdate(ctx) {
+            const { file, server, modules } = ctx;
+            // 只处理 SVG 文件
+            if (!file.endsWith('.svg')) return modules;
+
+            // 判断 SVG 文件是否属于配置的图标集合（collections）
+            const isCollectionFile = Object.values(pluginOpt.collections).some(dir =>
+                file.startsWith(dir),
+            );
+            if (!isCollectionFile) return modules;
+
+            // 收集受影响的模块（初始包含传入的模块）
+            const affectedModules: Set<ModuleNode> = new Set();
+
+            const mods = Array.from(server.moduleGraph.idToModuleMap.values());
+            const virtualModule = mods.find(mod => {
+                if (!mod.id) return false;
+                const resolved = resolvePath(mod.id, pluginOpt);
+                return resolved?.sourcePath === file;
             });
-            if (match) {
-                const keys = server.moduleGraph.idToModuleMap.keys();
-                // keys 中的值是 ~icons/icons/a.svg 的形式
-                const key = Array.from(keys).find(key => {
-                    const { sourcePath } = resolvePath(key, opt) || {};
-                    return sourcePath === file;
-                });
-                const mod = key ? server.moduleGraph.getModuleById(key) : '';
-                if (!mod) {
-                    console.warn('Module not found: ', file);
-                    return;
-                }
+            if (!virtualModule) return modules;
+            affectedModules.add(virtualModule);
+
+            affectedModules.forEach(mod => {
                 server.moduleGraph.invalidateModule(mod);
-                server.ws.send({
-                    type: 'update',
-                    updates: [{
-                        type: 'js-update',
-                        path: mod.url,
-                        acceptedPath: mod.url,
-                        timestamp: Date.now(),
-                    }],
-                });
-                return [mod];
-            }
+            });
+            return Array.from(affectedModules);
         },
     };
 }
